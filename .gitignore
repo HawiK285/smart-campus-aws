@@ -1,8 +1,9 @@
-*.js
-!jest.config.js
-*.d.ts
 node_modules
-
-# CDK asset staging directory
-.cdk.staging
 cdk.out
+*.csv
+*.log
+
+# IDE / editor stuff
+.vscode
+.idea
+.DS_Store
