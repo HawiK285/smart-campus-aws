@@ -1,3 +1,62 @@
+## 🏗 ASCII Architecture Diagram
+
+```text
+                                +-----------------------------+
+                                |     AWS CloudShell (AWS)    |
+                                |  - cdk deploy               |
+                                |  - aws s3 / aws athena      |
+                                |  - git (GitHub)             |
+                                +--------------+--------------+
+                                               |
+                                               | CDK (deploy stack)
+                                               v
+      +---------------------------------------------------------------------+
+      |                           [ AWS Cloud (us-east-1) ]                 |
+      |                                                                     |
+      |   +---------------------+                +-----------------------+  |
+      |   |  Amazon API Gateway |                |   Amazon Athena (AWS) |  |
+      |   |      (REST API)     |                |   smart_campus DB     |  |
+      |   |---------------------|                |-----------------------|  |
+      |   |  POST /events       |                | Tables:               |  |
+      |   |  POST /rooms        |                | - events_checkins     |  |
+      |   +----------+----------+                | - rooms_usage         |  |
+      |              |                           +-----------+-----------+  |
+      |              | Invoke Lambdas                        |              |
+      |              v                                       | Query JSON   |
+      |   +--------------------------+                       |              |
+      |   |   AWS Lambda (Python)    |                       |              |
+      |   |--------------------------|                       |              |
+      |   | ingest.py                |                       |              |
+      |   | (/events/checkin)        |                       |              |
+      |   +--------------------------+                       |              |
+      |   +--------------------------+                       |              |
+      |   |   AWS Lambda (Python)    |                       |              |
+      |   |--------------------------|                       |              |
+      |   | rooms_usage.py           |                       |              |
+      |   | (/rooms/usage)           |                       |              |
+      |   +-------------+------------+                       |              |
+      |                 | Write JSON                         |              |
+      |                 v                                     v             |
+      |        +-------------------------------+                            |
+      |        |     Amazon S3 (Data Lake)     |                            |
+      |        | smartcampusstack-raw bucket   |                            |
+      |        |------------------------------|                            |
+      |        |  events/checkin_*.json       |                            |
+      |        |  rooms/usage_*.json          |                            |
+      |        |  testuploads/athena-results/ |<-- CSV query results       |
+      |        +-------------------------------+                            |
+      |                                                                     |
+      |   (AWS IAM roles & policies allow:                                  |
+      |    - API Gateway -> Lambda invoke                                   |
+      |    - Lambda -> S3 write                                             |
+      |    - Athena -> S3 read/write, etc.)                                 |
+      +---------------------------------------------------------------------+
+
+Client (outside AWS):
+  - curl / Postman / browser
+  - Sends HTTP requests to the API Gateway endpoints
+
+
 # Smart Campus Serverless Data Platform (AWS)
 
 A serverless data platform built on the AWS Free Tier using **AWS CloudShell** and **AWS CDK**.  
